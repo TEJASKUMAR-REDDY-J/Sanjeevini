@@ -1,37 +1,39 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+import config
 
 # Step 1: Scrape Data from the MedIndia article
-url = "https://www.medindia.net/news/swine-flu-death-toll-rises-to-663-in-india-146689-1.htm"
-headers = {"User-Agent": "Mozilla/5.0"}
-response = requests.get(url, headers=headers)
+response = requests.get(URL, headers=HEADER)
 soup = BeautifulSoup(response.text, "html.parser")
 
 # Step 2: Extract Data
 title = soup.find("h1").text.strip()
 
 # Locate the Symptoms section
-symptoms_section = soup.find("strong", string=lambda text: text and "Symptoms" in text)
-symptoms = []
-if symptoms_section:
-    symptoms_list = symptoms_section.find_next("ul")  # Find next UL (unordered list)
-    if symptoms_list:
-        symptoms = [li.text.strip() for li in symptoms_list.find_all("li")]
+def extract_symptoms(soup):
+    symptoms = []
+    symptoms_section = soup.find("strong", string=lambda text: text and "Symptoms" in text)
+    if symptoms_section:
+        symptoms_list = symptoms_section.find_next("ul")  # Find next UL (unordered list)
+        if symptoms_list:
+            symptoms = [li.text.strip() for li in symptoms_list.find_all("li")]
+    return symptoms
 
-# Locate the Prevention section
-prevention = []
-# We'll search for all <li> tags and look for prevention-related items
-li_tags = soup.find_all("li")
-for li in li_tags:
-    text = li.get_text(strip=True).lower()
-    if "maintain" in text or "drink" in text or "cover" in text or "wear" in text:
-        prevention.append(text)
+# Function to extract prevention information from the page
+def extract_prevention(soup):
+    prevention = []
+    li_tags = soup.find_all("li")
+    for li in li_tags:
+        text = li.get_text(strip=True).lower()
+        if "maintain" in text or "drink" in text or "cover" in text or "wear" in text:
+            prevention.append(text)
+    return prevention
 
 # Extract all paragraphs as content (if needed)
 content = "\n".join([p.text.strip() for p in soup.find_all("p")])
 
-# Step 3: Save as JSON
+# Step 3: Save as JSON 
 data = {
     "Title": title,
     "Symptoms": symptoms,
